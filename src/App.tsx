@@ -23,6 +23,12 @@ function App() {
   }
 
   function startPayPeriod() {
+    //days = 7 - count down and only call function from this function - one for each of the following: (or close)
+    //remove subract marketing cost and calculate marketing multiplier
+    //deduct payroll from payroll account based on employees and salary
+    //create jobs and add jobs to job board for user to accept and cash out based on info in dispaly
+    //employee satisfaction, if payroll gets too far behind or salary is too low a chance to lose installers
+    //customer satisfaction, if you dont have enough installers for larger jobs you get bad reviews and therefore less jobs
     if (Number(salary) > account) {
       alert("you cant afford that salary");
     } else {
@@ -30,18 +36,20 @@ function App() {
       setMarketingValue((prev) => prev + value);
       setAccount((prev) => prev - value);
       setMarketingInput("");
-      useMarketing(value);
+      runMarketing(value);
       setMessage("Work Week In Progress.");
     }
   }
-  function useMarketing(num: number) {
-    if (num < 100) {
+  function runMarketing(num: number) {
+    let days = 7;
+    if (num < 1) {
       alert("add money to campagin");
     } else {
+      let dailyMarketingBudget = Math.round(num / 7);
       const intervalId = setInterval(() => {
-        num -= 100;
-        setMarketingValue((prev) => prev - 100);
-        spendMarketing();
+        days--;
+        setMarketingValue((prev) => prev - dailyMarketingBudget);
+        calculateJobCost(dailyMarketingBudget);
         if (num - 100 < 0) {
           clearInterval(intervalId);
           setMessage("Marketing Campaign: Ended.");
@@ -53,9 +61,11 @@ function App() {
     }
   }
 
-  function spendMarketing() {
+  function calculateJobCost(dMB) {
     let odds = randNum(1, 2);
-    let employeeEfficency = Math.round((installers * Number(salary)) / 1.5);
+    let employeeEfficency = Math.round(
+      installers * Number(salary) * Math.round(dMB / 10)
+    );
     let jobValue = Math.round(randNum(1, 4) * employeeEfficency);
     setPayroll((prev) => prev - Number(salary) * installers);
     if (odds % 2) {
@@ -64,16 +74,15 @@ function App() {
   }
 
   function hireInstaller() {
-    let hireCost = 250;
     let newHire = Number(installersInput);
-    if (account < hireCost * newHire) {
+    if (account < costToHire * newHire) {
       alert(
-        `It costs $hireCost to hire each employee. You need $${
-          hireCost * newHire - account
+        `It costs ${costToHire} to hire each employee. You need $${
+          costToHire * newHire - account
         } more!`
       );
     } else {
-      setAccount((prev) => prev - newHire * hireCost);
+      setAccount((prev) => prev - newHire * costToHire);
       setInstallers((prev) => prev + newHire);
       setInstallersInput("");
     }
